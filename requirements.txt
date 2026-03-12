@@ -1,0 +1,11 @@
+flask
+werkzeug
+opencv-python
+ultralytics
+numpy
+pillow
+torch
+google-genai
+filterpy
+scipy
+scikit-image

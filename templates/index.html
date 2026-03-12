@@ -1,0 +1,738 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Violation Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .tab:hover {
+            background: #e0e0e0;
+        }
+
+        .tab.active {
+            background: white;
+            border-bottom: 3px solid #667eea;
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 40px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-section {
+            text-align: center;
+        }
+
+        .upload-box {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 60px 20px;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-box:hover {
+            background: #eef0ff;
+            border-color: #764ba2;
+        }
+
+        .upload-box input {
+            display: none;
+        }
+
+        .canvas-container {
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+        }
+
+        #videoCanvas {
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            max-width: 100%;
+            cursor: crosshair;
+        }
+
+        .canvas-instructions {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .drawing-mode {
+            margin: 15px 0;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 8px;
+        }
+
+        .mode-button {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-button:hover {
+            background: #764ba2;
+        }
+
+        .mode-button.active {
+            background: #4caf50;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 10px;
+        }
+
+        .upload-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .challan-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .challan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .challan-id {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .plate-number {
+            background: #ff6b6b;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .violation-item {
+            background: #f8f9ff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .violation-type {
+            font-weight: bold;
+            color: #ff6b6b;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .violation-image {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .violation-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            margin-right: 5px;
+        }
+
+        .helmet-violation {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .triple-violation {
+            background: #ffa500;
+            color: white;
+        }
+
+        .redlight-violation {
+            background: #d32f2f;
+            color: white;
+        }
+
+        .email-sent {
+            background: #4caf50;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .error-message {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .no-violations {
+            background: #4caf50;
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚦 Traffic Violation Detection System</h1>
+            <p>AI-Powered Detection with Red Light Color Check & Vehicle Tracking</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('helmet')">🏍️ Helmet & Triple Riding</div>
+            <div class="tab" onclick="switchTab('redlight')">🚦 Red Light Violations</div>
+        </div>
+
+        <!-- Helmet/Triple Riding Tab — UNCHANGED -->
+        <div id="helmet-tab" class="tab-content active">
+            <div class="upload-section">
+                <div class="upload-box" onclick="document.getElementById('videoInput1').click()">
+                    <h2>📹 Upload Traffic Video</h2>
+                    <p style="margin-top: 10px; color: #666;">Helmet & Triple Riding Detection</p>
+                    <input type="file" id="videoInput1" accept="video/*">
+                </div>
+                <button class="upload-btn" id="processBtn1" onclick="processHelmetVideo()" disabled>
+                    Process Video
+                </button>
+                <p id="fileName1" style="margin-top: 15px; color: #667eea; font-weight: bold;"></p>
+            </div>
+            <div class="loading" id="loading1">
+                <div class="spinner"></div>
+                <p style="margin-top: 20px; color: #667eea; font-size: 1.2em;">Processing with vehicle tracking...
+                    Please wait</p>
+            </div>
+            <div class="results-section" id="results1">
+                <h2 style="margin-bottom: 20px; color: #667eea;">Detection Results</h2>
+                <div class="stats" id="stats1"></div>
+                <div id="challans1"></div>
+            </div>
+        </div>
+
+        <!-- Red Light Tab — UNCHANGED except JS fix below -->
+        <div id="redlight-tab" class="tab-content">
+            <div class="upload-section">
+                <div class="upload-box" onclick="document.getElementById('videoInput2').click()">
+                    <h2>🚦 Upload Traffic Video</h2>
+                    <p style="margin-top: 10px; color: #666;">Red Light Violation Detection with Color Check</p>
+                    <input type="file" id="videoInput2" accept="video/*">
+                </div>
+
+                <div class="canvas-container" id="canvasContainer">
+                    <div class="canvas-instructions">
+                        <strong>🎯 Step 1:</strong> Select drawing mode below<br>
+                        <strong>📍 Step 2:</strong> Draw on the frame<br>
+                        <strong>🔴 Red Line:</strong> Stop line where vehicles should stop<br>
+                        <strong>🟢 Green Box:</strong> Traffic light area to detect red color
+                    </div>
+                    <div class="drawing-mode">
+                        <button class="mode-button active" id="lineMode" onclick="setDrawingMode('line')">
+                            🔴 Draw Stop Line
+                        </button>
+                        <button class="mode-button" id="lightMode" onclick="setDrawingMode('light')">
+                            🟢 Mark Traffic Light
+                        </button>
+                    </div>
+                    <canvas id="videoCanvas"></canvas>
+                    <div style="margin-top: 15px;">
+                        <button class="upload-btn" onclick="resetDrawing()">🔄 Reset All</button>
+                        <button class="upload-btn" id="processBtn2" onclick="processRedLightVideo()" disabled>
+                            ✅ Process Video
+                        </button>
+                    </div>
+                </div>
+
+                <p id="fileName2" style="margin-top: 15px; color: #667eea; font-weight: bold;"></p>
+            </div>
+            <div class="loading" id="loading2">
+                <div class="spinner"></div>
+                <p style="margin-top: 20px; color: #667eea; font-size: 1.2em;">Detecting red light violations with color
+                    check... Please wait</p>
+            </div>
+            <div class="results-section" id="results2">
+                <h2 style="margin-bottom: 20px; color: #667eea;">Red Light Violations</h2>
+                <div class="stats" id="stats2"></div>
+                <div id="challans2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile1 = null;
+        let selectedFile2 = null;
+        let videoPath = null;
+        let canvas = null;
+        let ctx = null;
+        let isDrawing = false;
+        let drawingMode = 'line';
+
+        let lineStartX = 0, lineStartY = 0, lineEndX = 0, lineEndY = 0;
+        let lineDrawn = false;
+
+        let lightStartX = 0, lightStartY = 0, lightEndX = 0, lightEndY = 0;
+        let lightDrawn = false;
+
+        let backgroundImage = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            if (tab === 'helmet') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('helmet-tab').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('redlight-tab').classList.add('active');
+            }
+        }
+
+        function setDrawingMode(mode) {
+            drawingMode = mode;
+            document.getElementById('lineMode').classList.remove('active');
+            document.getElementById('lightMode').classList.remove('active');
+            if (mode === 'line') {
+                document.getElementById('lineMode').classList.add('active');
+            } else {
+                document.getElementById('lightMode').classList.add('active');
+            }
+        }
+
+        // ── Helmet tab — UNCHANGED ────────────────────────────────────────────
+        document.getElementById('videoInput1').addEventListener('change', function (e) {
+            selectedFile1 = e.target.files[0];
+            if (selectedFile1) {
+                document.getElementById('fileName1').textContent = `Selected: ${selectedFile1.name}`;
+                document.getElementById('processBtn1').disabled = false;
+            }
+        });
+
+        // ── Red light tab — UNCHANGED ─────────────────────────────────────────
+        document.getElementById('videoInput2').addEventListener('change', async function (e) {
+            selectedFile2 = e.target.files[0];
+            if (selectedFile2) {
+                document.getElementById('fileName2').textContent = `Selected: ${selectedFile2.name}`;
+                const formData = new FormData();
+                formData.append('video', selectedFile2);
+                try {
+                    const response = await fetch('/get_first_frame', { method: 'POST', body: formData });
+                    const data = await response.json();
+                    if (data.success) {
+                        videoPath = data.video_path;
+                        displayCanvasWithFrame(data.frame);
+                    }
+                } catch (error) {
+                    alert('Error loading video: ' + error.message);
+                }
+            }
+        });
+
+        function displayCanvasWithFrame(frameBase64) {
+            document.getElementById('canvasContainer').style.display = 'block';
+            canvas = document.getElementById('videoCanvas');
+            ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = function () {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                backgroundImage = img;
+                ctx.drawImage(img, 0, 0);
+            };
+            img.src = 'data:image/jpeg;base64,' + frameBase64;
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+        }
+
+        // ── FIX: scale display pixels → actual canvas pixels in all 3 functions ──
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            // Scale: canvas may be visually smaller than its internal resolution
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+
+            if (drawingMode === 'line') {
+                lineStartX = x; lineStartY = y;
+            } else {
+                lightStartX = x; lightStartY = y;
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(backgroundImage, 0, 0);
+
+            if (lineDrawn) {
+                ctx.beginPath();
+                ctx.moveTo(lineStartX, lineStartY);
+                ctx.lineTo(lineEndX, lineEndY);
+                ctx.strokeStyle = 'red';
+                ctx.lineWidth = 5;
+                ctx.stroke();
+            }
+
+            if (lightDrawn) {
+                ctx.strokeStyle = 'green';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(lightStartX, lightStartY, lightEndX - lightStartX, lightEndY - lightStartY);
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.2)';
+                ctx.fillRect(lightStartX, lightStartY, lightEndX - lightStartX, lightEndY - lightStartY);
+            }
+
+            if (drawingMode === 'line') {
+                ctx.beginPath();
+                ctx.moveTo(lineStartX, lineStartY);
+                ctx.lineTo(x, y);
+                ctx.strokeStyle = 'red';
+                ctx.lineWidth = 5;
+                ctx.stroke();
+            } else {
+                ctx.strokeStyle = 'green';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(lightStartX, lightStartY, x - lightStartX, y - lightStartY);
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.2)';
+                ctx.fillRect(lightStartX, lightStartY, x - lightStartX, y - lightStartY);
+            }
+        }
+
+        function stopDrawing(e) {
+            if (!isDrawing) return;
+            isDrawing = false;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+
+            if (drawingMode === 'line') {
+                lineEndX = x; lineEndY = y;
+                lineDrawn = true;
+            } else {
+                lightEndX = x; lightEndY = y;
+                lightDrawn = true;
+            }
+
+            if (lineDrawn && lightDrawn) {
+                document.getElementById('processBtn2').disabled = false;
+            }
+        }
+
+        // ── END OF FIX ────────────────────────────────────────────────────────
+
+        function resetDrawing() {
+            if (backgroundImage) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(backgroundImage, 0, 0);
+                lineStartX = lineStartY = lineEndX = lineEndY = 0;
+                lightStartX = lightStartY = lightEndX = lightEndY = 0;
+                lineDrawn = false;
+                lightDrawn = false;
+                document.getElementById('processBtn2').disabled = true;
+            }
+        }
+
+        // ── Helmet process — UNCHANGED ────────────────────────────────────────
+        async function processHelmetVideo() {
+            if (!selectedFile1) return;
+            const formData = new FormData();
+            formData.append('video', selectedFile1);
+            document.querySelector('#helmet-tab .upload-section').style.display = 'none';
+            document.getElementById('loading1').style.display = 'block';
+            try {
+                const response = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await response.json();
+                document.getElementById('loading1').style.display = 'none';
+                document.getElementById('results1').style.display = 'block';
+                if (!response.ok || !data.success) {
+                    document.getElementById('challans1').innerHTML = `
+                        <div class="error-message">
+                            <h3>❌ Error Processing Video</h3>
+                            <p>${data.error || 'Unknown error occurred'}</p>
+                        </div>`;
+                    return;
+                }
+                displayResults(data.challans, 'stats1', 'challans1');
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading1').style.display = 'none';
+                document.getElementById('results1').style.display = 'block';
+                document.getElementById('challans1').innerHTML = `
+                    <div class="error-message"><h3>❌ Error</h3><p>${error.message}</p></div>`;
+            }
+        }
+
+        // ── Red light process — UNCHANGED ─────────────────────────────────────
+        async function processRedLightVideo() {
+            if (!videoPath || !lineDrawn || !lightDrawn) {
+                alert('Please draw both the stop line and traffic light region');
+                return;
+            }
+
+            const lineCoords = `${Math.round(lineStartX)},${Math.round(lineStartY)},${Math.round(lineEndX)},${Math.round(lineEndY)}`;
+            const lightRegion = `${Math.round(Math.min(lightStartX, lightEndX))},${Math.round(Math.min(lightStartY, lightEndY))},${Math.round(Math.max(lightStartX, lightEndX))},${Math.round(Math.max(lightStartY, lightEndY))}`;
+
+            const formData = new FormData();
+            formData.append('video_path', videoPath);
+            formData.append('line_coords', lineCoords);
+            formData.append('light_region', lightRegion);
+
+            document.querySelector('#redlight-tab .upload-section').style.display = 'none';
+            document.getElementById('loading2').style.display = 'block';
+
+            try {
+                const response = await fetch('/upload_redlight', { method: 'POST', body: formData });
+                const data = await response.json();
+                document.getElementById('loading2').style.display = 'none';
+                document.getElementById('results2').style.display = 'block';
+                if (!response.ok || !data.success) {
+                    document.getElementById('challans2').innerHTML = `
+                        <div class="error-message">
+                            <h3>❌ Error Processing Video</h3>
+                            <p>${data.error || 'Unknown error occurred'}</p>
+                        </div>`;
+                    return;
+                }
+                displayResults(data.challans, 'stats2', 'challans2');
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading2').style.display = 'none';
+                document.getElementById('results2').style.display = 'block';
+                document.getElementById('challans2').innerHTML = `
+                    <div class="error-message"><h3>❌ Error</h3><p>${error.message}</p></div>`;
+            }
+        }
+
+        // ── Display results — UNCHANGED ───────────────────────────────────────
+        function displayResults(challans, statsId, challansId) {
+            const statsDiv = document.getElementById(statsId);
+            const challansDiv = document.getElementById(challansId);
+
+            if (challans.length === 0) {
+                statsDiv.innerHTML = `<div class="stat-item"><div class="stat-number">0</div><div class="stat-label">No Violations</div></div>`;
+                challansDiv.innerHTML = `<div class="no-violations">✅ No traffic violations detected in this video!</div>`;
+                return;
+            }
+
+            let totalViolations = 0, helmetCount = 0, tripleCount = 0, redlightCount = 0;
+            challans.forEach(c => {
+                totalViolations += c.total_violations;
+                c.violations.forEach(v => {
+                    if (v.type === 'NO_HELMET') helmetCount++;
+                    if (v.type === 'TRIPLE_RIDING') tripleCount++;
+                    if (v.type === 'RED_LIGHT') redlightCount++;
+                });
+            });
+
+            statsDiv.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-number">${challans.length}</div>
+                    <div class="stat-label">Unique Vehicles</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${totalViolations}</div>
+                    <div class="stat-label">Total Violations</div>
+                </div>
+                ${helmetCount > 0 ? `<div class="stat-item"><div class="stat-number">${helmetCount}</div><div class="stat-label">No Helmet</div></div>` : ''}
+                ${tripleCount > 0 ? `<div class="stat-item"><div class="stat-number">${tripleCount}</div><div class="stat-label">Triple Riding</div></div>` : ''}
+                ${redlightCount > 0 ? `<div class="stat-item"><div class="stat-number">${redlightCount}</div><div class="stat-label">Red Light</div></div>` : ''}
+            `;
+
+            challansDiv.innerHTML = '';
+            challans.forEach(challan => {
+                const card = document.createElement('div');
+                card.className = 'challan-card';
+                let violationsHTML = '';
+                challan.violations.forEach(v => {
+                    let badgeClass = 'helmet-violation';
+                    if (v.type === 'TRIPLE_RIDING') badgeClass = 'triple-violation';
+                    if (v.type === 'RED_LIGHT') badgeClass = 'redlight-violation';
+                    violationsHTML += `
+                        <div class="violation-item">
+                            <div class="violation-type">
+                                <span class="violation-badge ${badgeClass}">${v.type.replace('_', ' ')}</span>
+                            </div>
+                            <div>Frame: ${v.frame} | Tracked ID: ${v.tracked_id}</div>
+                            <div>Time: ${new Date(v.timestamp).toLocaleString()}</div>
+                            ${v.num_people ? `<div>People: ${v.num_people} (Helmets: ${v.num_helmets}, Faces: ${v.num_faces})</div>` : ''}
+                            <img src="/image/${v.image}" class="violation-image" alt="Violation">
+                            ${v.plate_image ? `<img src="/image/${v.plate_image}" class="violation-image" alt="License Plate" style="max-width: 300px;">` : ''}
+                        </div>`;
+                });
+                card.innerHTML = `
+                    <div class="challan-header">
+                        <div class="challan-id">Challan #${challan.challan_id}</div>
+                        <div class="plate-number">${challan.plate_number}</div>
+                    </div>
+                    <div class="email-sent">📧 Individual challan sent via email for Vehicle ID: ${challan.tracked_id}</div>
+                    ${violationsHTML}`;
+                challansDiv.appendChild(card);
+            });
+        }
+    </script>
+</body>
+
+</html>

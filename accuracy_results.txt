@@ -1,0 +1,37 @@
+﻿======================================================================
+       TRAFFIC VIOLATION DETECTION ù MODEL ACCURACY REPORT
+======================================================================
+.\env\Scripts\python.exe : 
+Traceback (most recent call 
+last):
+At line:1 char:1
++ .\env\Scripts\python.exe 
+check_accuracy.py 2>&1 | 
+Out-File -FilePath  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : 
+    NotSpecified: (Traceback  
+   (most recent call last):   
+ :String) [], RemoteExcept    
+ion
+    + FullyQualifiedErrorId : 
+    NativeCommandError
+ 
+  File "C:\Users\kanna\OneDriv
+e\Desktop\finalyearproject\che
+ck_accuracy.py", line 25, in 
+<module>
+    print(f"\n{'\u2500' * 
+70}")
+  File "C:\Users\kanna\AppData
+\Local\Programs\Python\Python3
+10\lib\encodings\cp1252.py", 
+line 19, in encode
+    return codecs.charmap_enco
+de(input,self.errors,encoding_
+table)[0]
+UnicodeEncodeError: 'charmap' 
+codec can't encode characters 
+in position 2-71: character 
+maps to <undefined>

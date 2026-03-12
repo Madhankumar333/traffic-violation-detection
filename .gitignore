@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.spec
+
+# Virtual environment
+env/
+venv/
+.env
+.venv/
+
+# VS Code
+.vscode/
+
+# Model weights (large files - too big for GitHub)
+*.pt
+*.pth
+*.weights
+*.onnx
+
+# Zip archives
+*.zip
+
+# Temporary files
+temp_videos/
+uploads/
+violations/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs / caches
+*.log
+cache.py
+
+# Jupyter
+.ipynb_checkpoints/
