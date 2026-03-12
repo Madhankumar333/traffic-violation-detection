@@ -32,13 +32,13 @@ os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
 os.makedirs(app.config['TEMP_FOLDER'], exist_ok=True)
 os.makedirs(os.path.join(app.config['OUTPUT_FOLDER'], 'images'), exist_ok=True)
 
-# Email Configuration
-EMAIL_ADDRESS = "ayushtiwari.creatorslab@gmail.com"
-EMAIL_PASSWORD = "tecx bcym vxdz dtni"
-RECIPIENT_EMAIL = "tn.bender2005@gmail.com"
+# Email Configuration (use environment variables for security)
+EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS", "ayushtiwari.creatorslab@gmail.com")
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "tecx bcym vxdz dtni")
+RECIPIENT_EMAIL = os.environ.get("RECIPIENT_EMAIL", "tn.bender2005@gmail.com")
 
 # Gemini API Key
-GEMINI_API_KEY = "AIzaSyCMY5-lrX7kPKBesjgQpm9O1bvO3jV65Io"
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyCMY5-lrX7kPKBesjgQpm9O1bvO3jV65Io")
 try:
     gemini_client = genai.Client(api_key=GEMINI_API_KEY)
 except:

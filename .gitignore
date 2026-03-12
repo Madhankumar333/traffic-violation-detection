@@ -19,12 +19,6 @@ venv/
 # VS Code
 .vscode/
 
-# Model weights (large files - too big for GitHub)
-*.pt
-*.pth
-*.weights
-*.onnx
-
 # Zip archives
 *.zip
 
@@ -37,9 +31,8 @@ violations/
 .DS_Store
 Thumbs.db
 
-# Logs / caches
+# Logs
 *.log
-cache.py
 
 # Jupyter
 .ipynb_checkpoints/

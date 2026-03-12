@@ -1,11 +1,12 @@
 flask
 werkzeug
-opencv-python
+opencv-python-headless
 ultralytics
 numpy
 pillow
-torch
+torch --index-url https://download.pytorch.org/whl/cpu
 google-genai
 filterpy
 scipy
 scikit-image
+gunicorn
