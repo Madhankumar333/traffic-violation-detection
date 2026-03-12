@@ -50,30 +50,58 @@ HELMET_MODEL_PATH = "best_helmetdetection.pt"
 TRIPLE_MODEL_PATH = "triple_riding.pt"
 YOLOV8_MODEL_PATH = "yolov8n.pt"
 
-# Load models
+# Lazy-load models to stay within memory limits
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-print(f"Loading models on device: {device}")
+print(f"Device: {device}")
 
-try:
-    helmet_model = YOLO(HELMET_MODEL_PATH).to(device)
-    print(f"✓ Helmet model loaded")
-except Exception as e:
-    print(f"✗ Error loading helmet model: {e}")
-    helmet_model = None
+# Model cache - models loaded on demand
+_model_cache = {}
 
-try:
-    triple_model = YOLO(TRIPLE_MODEL_PATH).to(device)
-    print(f"✓ Triple riding model loaded")
-except Exception as e:
-    print(f"✗ Error loading triple model: {e}")
-    triple_model = None
+def get_model(model_name):
+    """Lazy-load a model only when needed"""
+    global _model_cache
+    if model_name in _model_cache and _model_cache[model_name] is not None:
+        return _model_cache[model_name]
+    
+    model_paths = {
+        'helmet': HELMET_MODEL_PATH,
+        'triple': TRIPLE_MODEL_PATH,
+        'yolo': YOLOV8_MODEL_PATH
+    }
+    
+    path = model_paths.get(model_name)
+    if not path or not os.path.exists(path):
+        print(f"✗ Model file not found: {path}")
+        return None
+    
+    try:
+        # Clear other models to save memory
+        for key in list(_model_cache.keys()):
+            if key != model_name:
+                del _model_cache[key]
+        import gc
+        gc.collect()
+        
+        model = YOLO(path).to(device)
+        _model_cache[model_name] = model
+        print(f"✓ {model_name} model loaded")
+        return model
+    except Exception as e:
+        print(f"✗ Error loading {model_name} model: {e}")
+        return None
 
-try:
-    yolo_model = YOLO(YOLOV8_MODEL_PATH).to(device)
-    print(f"✓ YOLOv8n model loaded for red light detection")
-except Exception as e:
-    print(f"✗ Error loading YOLOv8n model: {e}")
-    yolo_model = None
+# Properties for backward compatibility
+@property
+def helmet_model_prop():
+    return get_model('helmet')
+
+@property  
+def triple_model_prop():
+    return get_model('triple')
+
+@property
+def yolo_model_prop():
+    return get_model('yolo')
 
 violations_db = []
 
@@ -276,7 +304,7 @@ def process_motorcycle(motorcycle_box, frame, temp_dir, frame_number, tracked_id
     violations = []
     helmet_confidences = {'helmet': 0.75, 'motorcyclist': 0.55, 'motorcycle': 0.55,
                           'license_plate': 0.3, 'person': 0.6, 'no-helmet': 0.6}
-    helmet_results = run_model_with_class_confidence(helmet_model, motorcycle_crop, helmet_confidences)
+    helmet_results = run_model_with_class_confidence(get_model('helmet'), motorcycle_crop, helmet_confidences)
     helmets = []
     license_plates = []
     people = []
@@ -284,7 +312,7 @@ def process_motorcycle(motorcycle_box, frame, temp_dir, frame_number, tracked_id
         if r.boxes is not None:
             for box in r.boxes:
                 cls_id = int(box.cls[0])
-                class_name = helmet_model.names[cls_id]
+                class_name = get_model('helmet').names[cls_id]
                 conf = float(box.conf[0])
                 bbox = box.xyxy[0].tolist()
                 if class_name in ['helmet']:
@@ -307,9 +335,9 @@ def process_motorcycle(motorcycle_box, frame, temp_dir, frame_number, tracked_id
     num_helmets = len(helmets)
     if num_helmets == 0 or num_faces > 0:
         violations.append('NO_HELMET')
-    if triple_model:
+    if get_model('triple'):
         triple_confidences = {'motorbike': 0.5, 'motorcycle': 0.5, 'triple': 0.5, 'triple_riding': 0.5}
-        triple_results = run_model_with_class_confidence(triple_model, motorcycle_crop, triple_confidences)
+        triple_results = run_model_with_class_confidence(get_model('triple'), motorcycle_crop, triple_confidences)
         for t_result in triple_results:
             if t_result.boxes is not None:
                 for t_box in t_result.boxes:
@@ -351,7 +379,7 @@ def process_motorcycle(motorcycle_box, frame, temp_dir, frame_number, tracked_id
 
 
 def process_video_with_tracking(video_path):
-    if helmet_model is None:
+    if get_model('helmet') is None:
         raise Exception("Helmet model not loaded")
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -378,7 +406,7 @@ def process_video_with_tracking(video_path):
                     frame_resized = cv2.resize(frame, (426, 240))
                     helmet_confidences = {'helmet': 0.75, 'motorcyclist': 0.55,
                                           'motorcycle': 0.55, 'license_plate': 0.3}
-                    helmet_results = run_model_with_class_confidence(helmet_model, frame_resized, helmet_confidences)
+                    helmet_results = run_model_with_class_confidence(get_model('helmet'), frame_resized, helmet_confidences)
                     detections = np.empty((0, 5))
                     for yolo_result in helmet_results:
                         boxes = yolo_result.boxes
@@ -482,7 +510,7 @@ def detect_red_light_violation(video_path, line_coords, light_region):
       FIX 4 - direction-change + band check: nothing missed even at low FPS
       FIX 5 - plate from Gemini: vehicle crop sent to Gemini on violation
     """
-    if yolo_model is None:
+    if get_model('yolo') is None:
         raise Exception("YOLOv8n model not loaded")
 
     cap = cv2.VideoCapture(video_path)
@@ -527,7 +555,7 @@ def detect_red_light_violation(video_path, line_coords, light_region):
                 print(f"  Frame {frame_count}: Light is {'RED' if is_light_red else 'NOT RED'}")
 
                 if is_light_red:
-                    results = yolo_model(frame, stream=True, verbose=False)
+                    results = get_model('yolo')(frame, stream=True, verbose=False)
                     detections = np.empty((0, 5))
                     for r in results:
                         boxes = r.boxes
